@@ -8,10 +8,11 @@
 
 #   All Libraries
 from tkinter import *
-from datetime import datetime
 from random import randrange
 from time import *
 import copy
+import winsound as ws
+file = 'changed3.wav'
 
 #   Setting up the screen
 root = Tk()
@@ -22,7 +23,7 @@ screen.pack()
 clickCounter = 0
 difficulty = ''
 discSize = 50
-
+starter = ''
 
 #   Class for the whole Board
 class Board:
@@ -41,10 +42,8 @@ class Board:
                     ['', '', '', '', '', '', '', '']]
 
     def refresh(self):
-        # for line in self.set:
-        #     print(line)
-        #   Draw all discs
-        if self.start == True:
+        global starter
+        if self.start:
             for i in range(8):
                 for j in range(8):
                     if self.set[i][j] == 'w':
@@ -58,7 +57,26 @@ class Board:
                         screen.create_oval(x, y, x + discSize, y + discSize,
                                            tags="tile {0}-{1}".format(i, j), fill="black",
                                            outline="black")
+                        screen.update()
 
+            screen.create_text(240, 620, text='Who Starts?', font=("Ubuntu", 15), tags='starter')
+            screen.create_rectangle(300, 600, 350, 640, fill="#000", outline="#000", tags='starter')
+            screen.create_rectangle(380, 600, 430, 640, fill="#000", outline="#000", tags='starter')
+            screen.create_text(320, 620, text='User', font=("Ubuntu", 12), fill='white', tags='starter')
+            screen.create_text(400, 620, text='CPU', font=("Ubuntu", 12), fill='white', tags='starter')
+
+            if starter == 'cpu':
+                starter = 'False'
+                screen.delete('starter')
+                screen.update()
+                self.player = 1
+                self.refresh()
+                sleep(1)
+                opMove(self.set)
+            elif starter == 'user':
+                starter = 'False'
+                screen.delete('starter')
+                screen.update()
 
         allValidPoints = []
         #   Show all valid points
@@ -90,9 +108,9 @@ class Board:
 
     def scoreBoard(self):
         screen.delete("score")
-        screen.create_oval(50, 580, 50 + 1.2 * discSize, 580 + 1.2 * discSize,
+        screen.create_oval(20, 580, 20 + 1.2 * discSize, 580 + 1.2 * discSize,
                            fill="black", outline="black")
-        screen.create_oval(500, 580, 500 + 1.2 * discSize, 580 + 1.2 * discSize,
+        screen.create_oval(470, 580, 470 + 1.2 * discSize, 580 + 1.2 * discSize,
                            fill="white", outline="black")
 
         wScore = 0
@@ -131,10 +149,13 @@ class Board:
             screen.create_oval(x, y, x + discSize, y + discSize, fill=discColor,
                                tags="tile {0}-{1}".format(i,j),
                                outline="black")
+            ws.PlaySound(file, ws.SND_FILENAME)
+            screen.update()
             for disc in turnDiscs:
                 #   Animation
                 screen.delete("{0}-{1}".format(disc[0], disc[1]))
                 self.set[disc[0]][disc[1]] = putintoSet
+                ws.PlaySound(file, ws.SND_FILENAME)
                 for i in range(int(discSize / 2)):
                     x = 50 + 31 + self.tileWidth * disc[1]
                     y = 50 + 31 + self.tileWidth * disc[0]
@@ -296,7 +317,7 @@ def opMove(set):
         # aiPlay(set)
 
 def ai(set):
-    bestChoice = board.minimax(set, 2, True)[1]
+    bestChoice = board.minimax(set, 3, True)[1]
     if bestChoice:
         i, j = bestChoice
         board.put(i, j)
@@ -315,110 +336,6 @@ def easyPlay(set):
     #   Selecting a random move
     randomMove = possibleMoves[randrange(len(possibleMoves))]
     board.put(randomMove[0], randomMove[1])
-
-#
-# def aiPlay(sett):
-#     copyset2 = copy.deepcopy(sett)
-#     copyset = sett
-#     findChoice = minimax(copyset, 0)
-#     print(findChoice)
-#
-#     score = 0
-#     for i in sett:
-#         for j in i:
-#             if j == 'w':
-#                 score += 1
-#
-#     #   Find the board with that Result
-#     possibleMoves = []
-#     newColor = 'w'
-#     mustChange = 'b'
-#     newboards = []
-#     for i in range(8):
-#         for j in range(8):
-#             if validPoints(sett, i, j):
-#                 possibleMoves.append([i, j])
-#
-#
-#     for possiblemove in possibleMoves:
-#         copyset = copy.deepcopy(sett)
-#         i = possiblemove[0]
-#         j = possiblemove[1]
-#         turnDisc = validPoints(copyset, i, j, mustChange)
-#         copyset[i][j] = newColor
-#         for disc in turnDisc:
-#             copyset[disc[0]][disc[1]] = newColor
-#         newboards.append([copyset, i, j])
-#
-#     for item in newboards:
-#         score = 0
-#         newset = item[0]
-#         for i in newset:
-#             for j in i:
-#                 if j == 'w':
-#                     score += 1
-#         if score == findChoice:
-#             board.put(item[1], item[2])
-#             break
-#
-#
-# def minimax(sett, depth):
-#     copyset2 = copy.deepcopy(sett)
-#
-#     targetDepth = 2
-#
-#     if depth == targetDepth:
-#         score = 0
-#         for i in sett:
-#             for j in i:
-#                 if j == 'w':
-#                     score += 1
-#         return [score, sett]
-#
-#     possibleMoves = []
-#     for i in range(8):
-#         for j in range(8):
-#             if validPoints(sett, i, j):
-#                 possibleMoves.append([i, j])
-#
-#     newboards = []
-#     #   Make new board
-#     if depth % 2 == 0:
-#         newColor = 'w'
-#         mustChange = 'b'
-#     else:
-#         newColor = 'b'
-#         mustChange = 'w'
-#
-#     for possiblemove in possibleMoves:
-#         copyset = copy.deepcopy(sett)
-#
-#         i = possiblemove[0]
-#         j = possiblemove[1]
-#         turnDisc = validPoints(copyset, i, j, mustChange)
-#         copyset[i][j] = newColor
-#         for disc in turnDisc:
-#             copyset[disc[0]][disc[1]] = newColor
-#         newboards.append(copyset)
-#
-#     scores = []
-#
-#     for sett in newboards:
-#         result = minimax(sett, depth + 1)
-#         scores.append(result)
-#
-#     if depth % 2 == 0:
-#         try:
-#             return max(scores)
-#         except:
-#             print(possibleMoves)
-#             print(scores)
-#     else:
-#         try:
-#             return min(scores)
-#         except:
-#             print(possibleMoves)
-#             print(scores)
 
 
 def validPoints(array, x, y, givenColor=None):
@@ -471,14 +388,6 @@ def validPoints(array, x, y, givenColor=None):
 
         for item in mustTurnDisc:
             allMustTurnDisc.append(item)
-    # if board.player == 1:
-    #     if allMustTurnDisc:
-    #   Return all disks that must turn
-    # if allMustTurnDisc != []:
-    #     print(board.player, end='   ')
-    #     print("x %d y %d" % (x, y), end=':    ')
-    #     print(allMustTurnDisc)
-    #     print('====')
     return allMustTurnDisc
 
 
@@ -489,10 +398,11 @@ def clicker(event):
     #   Just for console
     global clickCounter
     global difficulty
+    global starter
     clickCounter += 1
     # print("Click Number %d at : (%d,%d)" % (clickCounter, x, y))
 
-    if intro == True:
+    if intro:
         #   Difficulty easy
         if x < 250 and x > 50 and y < 400 and y > 350:
             difficulty = 'easy'
@@ -501,12 +411,19 @@ def clicker(event):
         elif x < 250 + 300 and x > 50 + 300 and y < 400 and y > 350:
             difficulty = 'ai'
             setUpBoard()
+    elif starter == '':
+        if 300<=x<=350 and 600<=y<=640:
+            starter = 'user'
+        elif 380<=x<=430 and 600<=y<=640:
+            starter = 'cpu'
+        board.refresh()
     elif 50 <= x <= 546 and 50 <= y <= 546:
         #   Find which space was clicked
         i = int((y - 50) / 62)
         j = int((x - 50) / 62)
         board.player = 0
         board.put(i, j)
+
 
 
 def setUpBoard():
