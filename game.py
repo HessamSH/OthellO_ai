@@ -159,7 +159,9 @@ class Board:
             checkColor = 'b'
         else:
             checkColor = 'w'
+        passed = False
         if passTurn(checkColor):
+            passed = True
             print("passed")
             self.player = 1-self.player
             self.refresh()
@@ -170,11 +172,13 @@ class Board:
         #   If it was user's turn, let computer play
         if self.player == 0:
             board.player = 1
-            self.refresh()
+            if not passed:
+                self.refresh()
             opMove(self.set)
         else:
             self.player = 0
-            self.refresh()
+            if not passed:
+                self.refresh()
 
     def minimax(self, sett, depth, maximizing):
         boards = []
@@ -292,7 +296,7 @@ def opMove(set):
         # aiPlay(set)
 
 def ai(set):
-    bestChoice = board.minimax(set, 3, True)[1]
+    bestChoice = board.minimax(set, 2, True)[1]
     if bestChoice:
         i, j = bestChoice
         board.put(i, j)
