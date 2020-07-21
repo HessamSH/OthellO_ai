@@ -201,7 +201,7 @@ class Board:
             if not passed:
                 self.refresh()
 
-    def minimax(self, sett, depth, maximizing):
+    def minimax(self, sett, depth, maxOrMin):
         boards = []
         choices = []
         possibleMoves = []
@@ -230,27 +230,34 @@ class Board:
             choices.append([i, j])
 
         score = 0
-        for i in sett:
-            for j in i:
-                if j == 'w':
-                    score += 1
+        evalTable = [[200 , -100, 100,  50,  50, 100, -100,  200],
+                [-100, -200, -50, -50, -50, -50, -200, -100],
+                [100 ,  -50, 100,   1,   1, 100,  -50,  100],
+                [50  ,  -50,   1,   1,   1,   1,  -50,   50],
+                [50  ,  -50,   1,   1,   1,   1,  -50,   50],
+                [100 ,  -50, 100,   1,   1, 100,  -50,  100],
+                [-100, -200, -50, -50, -50, -50, -200, -100],
+                [200 , -100, 100,  50,  50, 100, -100,  200]]
+
+        for i in range(8):
+            for j in range(8):
+                if sett[i][j] == 'w':
+                    score += evalTable[i][j]
 
         if depth == 0 or len(choices) == 0:
             return [score, []]
 
-        if maximizing:
+        if maxOrMin == 'max':
             bestValue = -float("inf")
             for item in boards:
-                set = item[0]
-                val = self.minimax(set, depth - 1, False)[0]
+                val = self.minimax(item[0], depth - 1, 'min')[0]
                 if val > bestValue:
                     bestValue = val
             return [bestValue, item[1]]
         else:
             bestValue = float("inf")
             for item in boards:
-                set = item[0]
-                val = self.minimax(set, depth - 1, True)[0]
+                val = self.minimax(item[0], depth - 1, 'max')[0]
                 if val < bestValue:
                     bestValue = val
             return [bestValue, item[1]]
@@ -258,6 +265,7 @@ class Board:
 
 def endGame(winner):
     screen.delete(ALL)
+    board.scoreBoard()
     if winner =='b':
         winner = 'Black'
     else :
@@ -317,7 +325,7 @@ def opMove(set):
         # aiPlay(set)
 
 def ai(set):
-    bestChoice = board.minimax(set, 3, True)[1]
+    bestChoice = board.minimax(set, 3, 'max')[1]
     if bestChoice:
         i, j = bestChoice
         board.put(i, j)
@@ -330,7 +338,6 @@ def easyPlay(set):
         for j in range(8):
             validpoints = validPoints(set, i, j)
             if validpoints:
-                # print(validpoints)
                 possibleMoves.append([i, j])
 
     #   Selecting a random move
